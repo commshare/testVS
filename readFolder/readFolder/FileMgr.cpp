@@ -169,6 +169,7 @@ void GetAllFiles(string path, vector<string>& files)
 		{
 			if ((fileinfo.attrib &  _A_SUBDIR))
 			{
+				cout << "sub dir" << endl;
 				if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
 				{
 					files.push_back(p.assign(path).append("\\").append(fileinfo.name));
@@ -177,6 +178,7 @@ void GetAllFiles(string path, vector<string>& files)
 			}
 			else
 			{
+				cout << "file" << endl;
 				files.push_back(p.assign(path).append("\\").append(fileinfo.name));
 			}
 
@@ -184,9 +186,25 @@ void GetAllFiles(string path, vector<string>& files)
 
 		_findclose(hFile);
 	}
+	else
+		cout << "hFile error" << endl;
 
 }
-
+#include <string.h> 
+std::string GetFilePosfix(const char* path)
+{
+	const char* pos = strrchr(path, '.');
+	if (pos)
+	{
+		std::string str(pos + 1);
+		//1.转换为小写  
+		//http://blog.csdn.net/infoworld/article/details/29872869  
+		std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+		//std:cout << "str[" + str + "]" << endl;
+		return "."+str;
+	}
+	return std::string();
+}
 //获取特定格式的文件名
 void GetAllFormatFiles(string path, vector<string>& files, vector<string>& filesname,string format)
 {
@@ -196,13 +214,22 @@ void GetAllFormatFiles(string path, vector<string>& files, vector<string>& files
 	//文件信息  
 	struct _finddata_t fileinfo;
 	string p;
+#if 0
 	if ((hFile = _findfirst(p.assign(path).append("\\*" + format).c_str(), &fileinfo)) != -1)
+#else
+	if ((hFile = _findfirst(p.assign(path).append("\\*").c_str(), &fileinfo)) != -1)
+#endif
 	{
 		do
 		{
-			cout << "fileinfo.name[" << fileinfo.name << "]" << endl;
+			string name = fileinfo.name;
+
+			/*仅仅是文件的名字*/
+			//cout << "fileinfo.name[" << name<< "]" << endl;
+			/*如果是子目录*/
 			if ((fileinfo.attrib &  _A_SUBDIR))
 			{
+				//cout << "sub dir" << endl;
 				if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
 				{
 					//files.push_back(p.assign(path).append("\\").append(fileinfo.name) );
@@ -211,25 +238,35 @@ void GetAllFormatFiles(string path, vector<string>& files, vector<string>& files
 			}
 			else
 			{
-				filesname.push_back(fileinfo.name);
-				files.push_back(p.assign(path).append("\\").append(fileinfo.name));
+				//cout << "file" << endl;
+				if (GetFilePosfix(name.c_str()) == format){
+					//cout << "got [" + name + "]" << endl;
+					filesname.push_back(fileinfo.name);
+					/*文件的全路径是通过folder名字+\\+文件名字拼接而成*/
+					files.push_back(p.assign(path).append("\\").append(fileinfo.name));
+				}
+				//else
+				//	cout << "not dll" << endl;
+				
 			}
 		} while (_findnext(hFile, &fileinfo) == 0);
 
 		_findclose(hFile);
 	}
+	else
+		cout << "hFile error" << endl;
 }
-int FileMgr::readFolderFiles(string folder, vector<string> &files, vector<string> &filesname, string format){
-	string filePath = folder;// "testimages\\water";
+int FileMgr::readFolderFiles(string folder, vector<string> &files/*拿到全路径*/, vector<string> &filesname/*仅仅是文件名*/, string format){
+	//string filePath = folder;// "testimages\\water";
 	//vector<string> files;
 	char * distAll = "AllFiles.txt";
 
 	//读取所有的文件，包括子文件的文件
-	//GetAllFiles(filePath, files);
+	//GetAllFiles(folder, files);
 
 	//读取所有格式为jpg的文件
 	//string format = ".jpg";
-	GetAllFormatFiles(filePath, files, filesname, format);
+	GetAllFormatFiles(folder, files, filesname, format);
 #if 1
 	/*文件结果写入txt中*/
 	ofstream ofn(distAll);
