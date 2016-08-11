@@ -5,6 +5,7 @@ http://blog.5ibc.net/p/39392.html
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
+
 /* http://stackoverflow.com/questions/8679473/error-c2679-binary-no-operator-found-which-takes-a-right-hand-operand-of
 The std::string operators are defined in the <string> header.
 The header <string.h> is for C-style string functions.
@@ -292,4 +293,67 @@ void  FileMgr::showFiles(vector<string> files){
 		cout << files[i] << endl;
 	}
 	cout << "show the abosolute path of all files :  END" << endl;
+}
+
+
+
+
+/*
+http://1350579085.iteye.com/blog/1993507
+*复制文件
+filename :要复制的文件名
+newfile :要复制到的文件名
+*/
+int FileMgr::copyFile(const char*src_file, const char*dst_file)
+{
+	ifstream in;
+	ofstream out;
+	/**
+	open函数的原型是
+	open(const char*filename,ios_base::openmode mode=ios_base::in) ;
+	in_stream.open("file.txt");这样写参数实际上是指向这个常量字符串的指针
+	*/
+	//打开文件
+	in.open(src_file);
+	//打开文件失败
+	if (in.fail()){
+		cout << "打开文件" + string(src_file)+"失败" << endl;
+		in.close();
+		out.close();
+		return -1;
+	}
+	out.open(dst_file);
+	if (out.fail()){
+		cout << "创建文件" + string(dst_file) + "失败" << endl;
+		in.close();
+		out.close();
+		return -1;
+	}
+	else{//复制文件
+		out << in.rdbuf();
+		out.close();
+		in.close();
+		return 0;
+	}
+}
+int FileMgr::copyFileToDir(vector<string> filesname, string src_dir, string dst_dir){
+	vector<string>::iterator it;
+	int ret=0;
+	for (it = filesname.begin(); it != filesname.end(); ++it){
+		 string src = src_dir + "\\" + *it;
+		 string dst = dst_dir + "\\" + *it;
+		//  char *_src = (char *) src.c_str();
+		ret=  copyFile(src.c_str(), dst.c_str());
+	}
+	return ret;
+}
+int FileMgr::copyFileToDir(vector<string> files, vector<string> filenames, string dst_dir){
+	int size = files.size();
+	int ret = 0;
+	for (int i = 0; i < size;++i){
+		//string src = src_dir + "\\" + *it;
+		string dst = dst_dir + "\\" + filenames[i];
+		ret = copyFile(files[i].c_str(), dst.c_str());
+	}
+	return ret;
 }

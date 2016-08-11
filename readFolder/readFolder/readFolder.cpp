@@ -13,6 +13,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	FileMgr *filemgr = new FileMgr();
 	string test1 = "J:\\media\\XLIVE\\windows\\test";
 	string folder = "J:\\media\\XLIVE\\windows\\webcamoid\\libAvKys\\Plugins";//"E:\\VQ\\GY_WZ\\gourp_15";//"F:\\RECORD\\data\\test";
+	string dst_folder = "F:\\RECORD\\testoutdll";
 	vector<string> files, filesname; /*Á½¸övector*/
 	std::cout << "get all files from :" << folder << std::endl;
 	string format = ".dll";
@@ -29,13 +30,15 @@ int _tmain(int argc, _TCHAR* argv[])
 	else
 		cout << "filemgr is null" << endl;
 	cout << "done" << endl;
-#if 1
+#if 0
 	if (!files.empty()){
 		filemgr->showFiles(files);
 	}
 	else
 		cout << "files is empty" << endl;
 #endif
+	filemgr->copyFileToDir(files, filesname, dst_folder);
+	cout << "ALL DONE" << endl;
 	getchar();
 	return 0;
 }
