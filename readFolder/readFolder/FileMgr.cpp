@@ -191,6 +191,9 @@ void GetAllFiles(string path, vector<string>& files)
 
 }
 #include <string.h> 
+/*
+原函数是返回后缀，现在加一个.后返回
+*/
 std::string GetFilePosfix(const char* path)
 {
 	const char* pos = strrchr(path, '.');
@@ -256,27 +259,23 @@ void GetAllFormatFiles(string path, vector<string>& files, vector<string>& files
 	else
 		cout << "hFile error" << endl;
 }
-int FileMgr::readFolderFiles(string folder, vector<string> &files/*拿到全路径*/, vector<string> &filesname/*仅仅是文件名*/, string format){
-	//string filePath = folder;// "testimages\\water";
-	//vector<string> files;
-	char * distAll = "AllFiles.txt";
+int FileMgr::readFolderFiles(string folder, vector<string> &files/*拿到全路径*/, vector<string> &filesname/*仅仅是文件名*/, string format,bool outputName){
 
-	//读取所有的文件，包括子文件的文件
-	//GetAllFiles(folder, files);
-
-	//读取所有格式为jpg的文件
-	//string format = ".jpg";
+	char * distAll = "AllFilesName.txt";
 	GetAllFormatFiles(folder, files, filesname, format);
 #if 1
 	/*文件结果写入txt中*/
 	ofstream ofn(distAll);
-	/*打印文件路径*/
+	/*打印文件绝对路径，这个是全路径*/
 	int size = files.size();
 	ofn << size << endl;
 	for (int i = 0; i < size; i++)
 	{
-		ofn << filesname[i] << endl;
-		//	cout << files[i] << endl;
+		if (outputName)	/*这个是文件名*/
+			ofn << filesname[i] << endl;
+		else
+			ofn << files[i] << endl;
+		//cout << "output [" + files[i] + "]" << endl;
 	}
 	ofn.close();
 #endif
@@ -284,10 +283,13 @@ int FileMgr::readFolderFiles(string folder, vector<string> &files/*拿到全路径*/,
 }
 void  FileMgr::showFiles(vector<string> files){
 	/*打印文件路径*/
+	cout << "show the abosolute path of all files : BEGIN" << endl;
+
 	int size = files.size();
 	cout << "size:" << size << endl;
 	for (int i = 0; i < size; i++)
 	{
 		cout << files[i] << endl;
 	}
+	cout << "show the abosolute path of all files :  END" << endl;
 }

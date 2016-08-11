@@ -22,7 +22,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		filemgr->getFiles(folder);
 #else
 		cout << "readFolderFiles" << endl;
-		filemgr->readFolderFiles(folder, files, filesname, format);
+		bool outputFileName = false;
+		filemgr->readFolderFiles(folder, files, filesname, format, outputFileName);
 #endif
 	}
 	else
