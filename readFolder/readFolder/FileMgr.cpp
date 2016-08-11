@@ -1,7 +1,7 @@
 /*
 http://blog.5ibc.net/p/39392.html
 */
-
+#include <windows.h>
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
@@ -303,6 +303,8 @@ http://1350579085.iteye.com/blog/1993507
 *复制文件
 filename :要复制的文件名
 newfile :要复制到的文件名
+
+没有一个循环读取文件直到写完的过程
 */
 int FileMgr::copyFile(const char*src_file, const char*dst_file)
 {
@@ -336,6 +338,41 @@ int FileMgr::copyFile(const char*src_file, const char*dst_file)
 		return 0;
 	}
 }
+/*
+1>------ Build started: Project: readFolder, Configuration: Debug Win32 ------
+1>  FileMgr.cpp
+1>d:\program files (x86)\microsoft visual studio 12.0\vc\include\xutility(2132): error C4996: 'std::_Copy_impl': Function call with parameters that may be unsafe - this call relies on the caller to check that the passed values are correct. To disable this warning, use -D_SCL_SECURE_NO_WARNINGS. See documentation on how to use Visual C++ 'Checked Iterators'
+1>          d:\program files (x86)\microsoft visual studio 12.0\vc\include\xutility(2113) : see declaration of 'std::_Copy_impl'
+1>          j:\myself\testvs\readfolder\readfolder\filemgr.cpp(342) : see reference to function template instantiation '_OutIt std::copy<std::_String_const_iterator<std::_String_val<std::_Simple_types<char>>>,LPWSTR>(_InIt,_InIt,_OutIt)' being compiled
+1>          with
+1>          [
+1>              _OutIt=LPWSTR
+1>  ,            _InIt=std::_String_const_iterator<std::_String_val<std::_Simple_types<char>>>
+1>          ]
+========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========
+*/
+#if 0
+LPWSTR ConvertToLPWSTR(const std::string& s)
+{
+	LPWSTR ws = new wchar_t[s.size() + 1]; // +1 for zero at the end
+	copy(s.begin(), s.end(), ws);
+	ws[s.size()] = 0; // zero at the end
+	return ws;
+}
+#endif
+
+//C++ string to WINDOWS UNICODE string
+std::wstring s2ws(const std::string& s)
+{
+	int len;
+	int slength = (int)s.length() + 1;
+	len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+	wchar_t* buf = new wchar_t[len];
+	MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
+	std::wstring r(buf);
+	delete[] buf;
+	return r;
+}
 int FileMgr::copyFileToDir(vector<string> filesname, string src_dir, string dst_dir){
 	vector<string>::iterator it;
 	int ret=0;
@@ -353,7 +390,27 @@ int FileMgr::copyFileToDir(vector<string> files, vector<string> filenames, strin
 	for (int i = 0; i < size;++i){
 		//string src = src_dir + "\\" + *it;
 		string dst = dst_dir + "\\" + filenames[i];
+#if 0
 		ret = copyFile(files[i].c_str(), dst.c_str());
+#else
+		/* http://stackoverflow.com/questions/27484269/expected-primary-expression-before-bool
+		files[i].c_str(), dst.c_str() cannot work! 
+		cannot convert argument 1 from 'const char *' to 'LPCWSTR'*/
+		/*convert from string to LPCWSTR*/
+		std::wstring stemp = (s2ws(files[i]));
+		LPCWSTR  _src = stemp.c_str();
+		std::wstring stemp_dst = s2ws(dst);
+		LPCWSTR  _dst = stemp_dst.c_str();
+		/*
+		https://msdn.microsoft.com/zh-cn/library/windows/desktop/aa363851(v=vs.85).aspx
+		*/
+		BOOL b = CopyFile(_src, _dst, FALSE);
+		if (b){
+		}
+		else
+			cout << "copy error :"<< GetLastError() << endl;
+
+#endif
 	}
 	return ret;
 }

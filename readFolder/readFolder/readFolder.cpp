@@ -1,5 +1,6 @@
 // readFolder.cpp : Defines the entry point for the console application.
 //
+
 #include <iostream>
 #include <string> //for cout<<std::string
 #include "stdafx.h"
@@ -13,7 +14,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	FileMgr *filemgr = new FileMgr();
 	string test1 = "J:\\media\\XLIVE\\windows\\test";
 	string folder = "J:\\media\\XLIVE\\windows\\webcamoid\\libAvKys\\Plugins";//"E:\\VQ\\GY_WZ\\gourp_15";//"F:\\RECORD\\data\\test";
-	string dst_folder = "F:\\RECORD\\testoutdll";
+	string dst_folder = "J:\\media\\XLIVE\\windows\\webcamoid\\lib\\avkys";// "F:\\RECORD\\testoutdll";
 	vector<string> files, filesname; /*Á½¸övector*/
 	std::cout << "get all files from :" << folder << std::endl;
 	string format = ".dll";
@@ -38,7 +39,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		cout << "files is empty" << endl;
 #endif
 	filemgr->copyFileToDir(files, filesname, dst_folder);
-	cout << "ALL DONE" << endl;
+
+	cout << "ALL DONE,print anything to exit " << endl;
 	getchar();
 	return 0;
 }
