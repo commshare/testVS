@@ -13,8 +13,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	//printf("hellow world\n");
 	FileMgr *filemgr = new FileMgr();
 	string test1 = "J:\\media\\XLIVE\\windows\\test";
-	string folder = "J:\\media\\XLIVE\\windows\\webcamoid\\libAvKys\\Plugins";//"E:\\VQ\\GY_WZ\\gourp_15";//"F:\\RECORD\\data\\test";
-	string dst_folder = "J:\\media\\XLIVE\\windows\\webcamoid\\lib\\avkys";// "F:\\RECORD\\testoutdll";
+	string folder = "J:\\MYSELF\\webcamoid\\libAvKys\\Plugins";//"E:\\VQ\\GY_WZ\\gourp_15";//"F:\\RECORD\\data\\test";
+	string dst_folder = "J:\\MYSELF\\webcamoid\\lib\\avkys";//"J:\\media\\XLIVE\\windows\\webcamoid\\lib\\avkys";// "F:\\RECORD\\testoutdll";
 	vector<string> files, filesname; /*Á½¸övector*/
 	std::cout << "get all files from :" << folder << std::endl;
 	string format = ".dll";
