@@ -198,7 +198,7 @@ vector<string> getFileNames(const char *folder){
 	return filename;
 }
 
-int main(int argc, char** argv)
+int main1(int argc, char** argv)
 {
 
 	try{
@@ -252,6 +252,7 @@ int main(int argc, char** argv)
 					src = imread(orgf, 1);
 					dst = carton(src);
 					dstfolder.append(fileName[i]);
+					/*写入图片*/
 					imwrite(dstfolder, dst);
 				}
 
@@ -277,4 +278,41 @@ int main(int argc, char** argv)
 		cout << e.what() << endl;
 	}
 
+}
+
+#include <iostream>
+#include <highgui.h>
+
+using namespace std;
+using namespace cv;
+
+int main()
+{
+	IplImage *image = cvLoadImage("F:\\RECORD\\cut\\靖慎怀.jpg");
+	if (image == NULL)
+		cout << "error load image" << endl;
+	else{
+		//cvShowImage("image1", image);
+	}
+
+	//将ROI区域图像保存在image中:左上角x、左上角y、矩形宽度、高度
+	cvSetImageROI(image, cvRect(45,145, 710, 686));
+	//cvShowImage("imageROI", image);
+#if 0
+	//执行cvSetImageROI（）之后显示image图像是只显示ROI标识的一部分，即改变了指针image，
+	//但是它仍旧保留有原来图像的信息，在执行这一句cvResetImageROI(image),之后，image指示原来的图像信息。
+	cvResetImageROI(image);
+	cvShowImage("image2", image);
+#endif
+	// 创建子图像
+	IplImage *result;
+	result = cvCreateImage(cvSize(710,686), image->depth, image->nChannels);
+	cvCopy(image, result);
+	cvResetImageROI(image);
+	cvShowImage("image copy out", result);
+	char *outfilename = "F:\\RECORD\\cutout\\teswt.jpg";
+	if (!cvSaveImage(outfilename, result)) printf("Could not save: %s\n", outfilename);
+	cvWaitKey(0);
+//	getchar();
+	return 0;
 }
