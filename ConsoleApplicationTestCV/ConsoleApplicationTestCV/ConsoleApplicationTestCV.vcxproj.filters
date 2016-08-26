@@ -23,5 +23,8 @@
     <ClInclude Include="include\dirent.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="cv_lib_turn.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -6,6 +6,8 @@
 
 using namespace cv;//it is cv
 
+#include"cv_lib_turn.h"
+
 int main1(){
 
 #if 0 //test ok
@@ -171,7 +173,7 @@ int ImageReader(const char* path, vector<string>& filenames){
 	while (filename = readdir(dp))
 	{
 		string name = filename->d_name;
-		string::size_type idx = name.find(".png");
+		string::size_type idx = name.find(".jpg");
 
 		if (idx != string::npos){
 			filenames.push_back(name);
@@ -282,37 +284,225 @@ int main1(int argc, char** argv)
 
 #include <iostream>
 #include <highgui.h>
-
+#include <windows.h>
+#include <iostream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <fstream>  
+#ifdef WIN32
+#include <direct.h>
+#include <io.h>
+#endif
 using namespace std;
 using namespace cv;
-
-int main()
+/*
+原函数是返回后缀，现在加一个.后返回
+*/
+std::string GetFilePosfix(const char* path)
 {
-	IplImage *image = cvLoadImage("F:\\RECORD\\cut\\靖慎怀.jpg");
-	if (image == NULL)
-		cout << "error load image" << endl;
-	else{
-		//cvShowImage("image1", image);
+	const char* pos = strrchr(path, '.');
+	if (pos)
+	{
+		std::string str(pos + 1);
+		//1.转换为小写  
+		//http://blog.csdn.net/infoworld/article/details/29872869  
+		std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+		//std:cout << "str[" + str + "]" << endl;
+		return "." + str;
 	}
-
-	//将ROI区域图像保存在image中:左上角x、左上角y、矩形宽度、高度
-	cvSetImageROI(image, cvRect(45,145, 710, 686));
-	//cvShowImage("imageROI", image);
+	return std::string();
+}
+//获取特定格式的文件名
+void GetAllFormatFiles(string path, vector<string>& files, vector<string>& filesname, string format)
+{
+	//文件句柄  
+	/*refer to http://blog.csdn.net/linj_m/article/details/48046913 for exception*/
+	intptr_t   hFile = 0;
+	//文件信息  
+	struct _finddata_t fileinfo;
+	string p;
 #if 0
-	//执行cvSetImageROI（）之后显示image图像是只显示ROI标识的一部分，即改变了指针image，
-	//但是它仍旧保留有原来图像的信息，在执行这一句cvResetImageROI(image),之后，image指示原来的图像信息。
-	cvResetImageROI(image);
-	cvShowImage("image2", image);
+	if ((hFile = _findfirst(p.assign(path).append("\\*" + format).c_str(), &fileinfo)) != -1)
+#else
+	if ((hFile = _findfirst(p.assign(path).append("\\*").c_str(), &fileinfo)) != -1)
 #endif
-	// 创建子图像
-	IplImage *result;
-	result = cvCreateImage(cvSize(710,686), image->depth, image->nChannels);
-	cvCopy(image, result);
-	cvResetImageROI(image);
-	cvShowImage("image copy out", result);
-	char *outfilename = "F:\\RECORD\\cutout\\teswt.jpg";
-	if (!cvSaveImage(outfilename, result)) printf("Could not save: %s\n", outfilename);
-	cvWaitKey(0);
-//	getchar();
+	{
+		do
+		{
+			string name = fileinfo.name;
+
+			/*仅仅是文件的名字*/
+			//cout << "fileinfo.name[" << name<< "]" << endl;
+			/*如果是子目录*/
+			if ((fileinfo.attrib &  _A_SUBDIR))
+			{
+				//cout << "sub dir" << endl;
+				if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
+				{
+					//files.push_back(p.assign(path).append("\\").append(fileinfo.name) );
+					GetAllFormatFiles(p.assign(path).append("\\").append(fileinfo.name), files, filesname, format);
+				}
+			}
+			else
+			{
+				//cout << "file" << endl;
+				if (GetFilePosfix(name.c_str()) == format){
+					//cout << "got [" + name + "]" << endl;
+					filesname.push_back(fileinfo.name);
+					/*文件的全路径是通过folder名字+\\+文件名字拼接而成*/
+					files.push_back(p.assign(path).append("\\").append(fileinfo.name));
+				}
+				//else
+				//	cout << "not dll" << endl;
+
+			}
+		} while (_findnext(hFile, &fileinfo) == 0);
+
+		_findclose(hFile);
+	}
+	else
+		cout << "hFile error" << endl;
+}
+int readFolderFiles(string folder, vector<string> &files/*拿到全路径*/, vector<string> &filesname/*仅仅是文件名*/, string format, bool outputName){
+
+	char * distAll = "AllFilesName.txt";
+	GetAllFormatFiles(folder, files, filesname, format);
+#if 1
+	/*文件结果写入txt中*/
+	ofstream ofn(distAll);
+	/*打印文件绝对路径，这个是全路径*/
+	int size = files.size();
+	ofn << size << endl;
+	for (int i = 0; i < size; i++)
+	{
+		if (outputName)	/*这个是文件名*/
+			ofn << filesname[i] << endl;
+		else
+			ofn << files[i] << endl;
+		//cout << "output [" + files[i] + "]" << endl;
+	}
+	ofn.close();
+#endif
 	return 0;
 }
+/*
+F:\\RECORD\\cut F:\\RECORD\\cutout
+*/
+int main(int argc, char *argv[])
+{
+	char* folder = argv[1];
+	printf("src folder [%s]\n",folder);
+	string orgfolder = folder;
+
+	    std::vector<std::string>fileName;
+		std::vector<std::string>names;
+
+		readFolderFiles(orgfolder,fileName,names,".jpg",true);
+	cout << "file num[" <<fileName.size() << "]";
+	for (int i = 0; i < fileName.size(); i++){
+		string dstfolder = argv[2];
+#if 0
+		string orgf = orgfolder.append(fileName[i]);
+		cout << "orgf=" << orgf << endl;
+#else
+		string orgf = orgfolder + "\\" + names[i];
+		cout << "orgf=" << orgf << endl;
+
+#endif
+
+		/*读入文件*/
+		IplImage *image = cvLoadImage(orgf.c_str());// ("F:\\RECORD\\cut\\靖慎怀.jpg");
+
+		if (image == NULL)
+			cout << "error load image" << endl;
+		else{
+			//cvShowImage("image1", image);
+		}
+
+		//将ROI区域图像保存在image中:左上角x、左上角y、矩形宽度、高度
+		cvSetImageROI(image, cvRect(45, 145, 710, 686));
+		//cvShowImage("imageROI", image);
+#if 0
+		//执行cvSetImageROI（）之后显示image图像是只显示ROI标识的一部分，即改变了指针image，
+		//但是它仍旧保留有原来图像的信息，在执行这一句cvResetImageROI(image),之后，image指示原来的图像信息。
+		cvResetImageROI(image);
+		cvShowImage("image2", image);
+#endif
+		// 创建子图像
+		IplImage *result;
+		result = cvCreateImage(cvSize(710, 686), image->depth, image->nChannels);
+		cvCopy(image, result);
+		cvResetImageROI(image);
+#if TEST
+		cvShowImage("image copy out", result);
+		char *outfilename = "F:\\RECORD\\cutout\\teswt.jpg";
+		if (!cvSaveImage(outfilename, result)) printf("Could not save: %s\n", outfilename);
+#endif
+
+#if 0
+		dstfolder.append(fileName[i]);
+#else
+		string outfile = dstfolder + "\\" + names[i];
+#endif
+		if (!cvSaveImage(outfile.c_str(), result)) printf("Could not save: %s\n", outfile.c_str());
+	}
+
+	cvWaitKey(0);
+	getchar();
+	return 0;
+}
+
+/*
+opencv_ml2413d.lib
+opencv_calib3d2413d.lib
+opencv_contrib2413d.lib
+opencv_core2413d.lib
+opencv_features2d2413d.lib
+opencv_flann2413d.lib
+opencv_gpu2413d.lib
+opencv_highgui2413d.lib
+opencv_imgproc2413d.lib
+opencv_legacy2413d.lib
+opencv_objdetect2413d.lib
+opencv_ts2413d.lib
+opencv_video2413d.lib
+opencv_nonfree2413d.lib
+opencv_ocl2413d.lib
+opencv_photo2413d.lib
+opencv_stitching2413d.lib
+opencv_superres2413d.lib
+opencv_videostab2413d.lib
+opencv_objdetect2413.lib
+opencv_ts2413.lib
+opencv_video2413.lib
+opencv_nonfree2413.lib
+opencv_ocl2413.lib
+opencv_photo2413.lib
+opencv_stitching2413.lib
+opencv_superres2413.lib
+opencv_videostab2413.lib
+opencv_calib3d2413.lib
+opencv_contrib2413.lib
+opencv_core2413.lib
+opencv_features2d2413.lib
+opencv_flann2413.lib
+opencv_gpu2413.lib
+opencv_highgui2413.lib
+opencv_imgproc2413.lib
+opencv_legacy2413.lib
+opencv_ml2413.lib
+kernel32.lib
+user32.lib
+gdi32.lib
+winspool.lib
+comdlg32.lib
+advapi32.lib
+shell32.lib
+ole32.lib
+oleaut32.lib
+uuid.lib
+odbc32.lib
+odbccp32.lib
+
+
+*/
